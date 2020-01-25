@@ -30,7 +30,7 @@ This Repository can be used to Provide your Server on two different Platforms Va
 
 ### Local Development
 
-For the local development use the local [Vagrant](https://vagrantup.com) Infrastructure, located at ```./local``.
+For the local development use the local [Vagrant](https://vagrantup.com) Infrastructure, located at ```./local```.
 
 ```bash
   cd ./local

@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: helm-chart-values-minecraft
+  namespace: tekton-pipelines
+data:
+  values.yml: |-
+    # https://github.com/helm/charts/blob/master/stable/minecraft/values.yaml
+    minecraftServer:
+      eula: true
+      serviceType: NodePort
+      version: "1.15.1"
+      type: SPIGOT
+      ops: {{ minecraft_whitelist }}
+      whitelist: {{ minecraft_whitelist }}
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  name: minecraft-install
+  namespace: tekton-pipelines
+spec:
+  serviceAccount: tektoncd-robot
+  pipelineRef:
+    name: helm-install
+  params:
+    - name: helm_chart
+      value: "minecraft"
+    - name: helm_targetNamespace
+      value: "minecraft"
+    - name: helm_release_name
+      value: "minecraft"
+    - name: helm_values_config_map_name
+      value: helm-chart-values-minecraft

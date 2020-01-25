@@ -1,0 +1,138 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: k8s-create-ns
+  namespace: tekton-pipelines
+spec:
+  inputs:
+    params:
+      - name: namespace_name
+        type: string
+  steps:
+    - name: create-ns
+      image: bitnami/kubectl:1.17.1
+      command:
+        - kubectl
+      args: ["create","ns","$(inputs.params.namespace_name)"]
+---
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: helm-install
+  namespace: tekton-pipelines
+spec:
+  inputs:
+    params:
+      - name: helm_repo
+        type: string
+        description: Helm Repo URL
+        default: https://kubernetes-charts.storage.googleapis.com
+      - name: helm_chart
+        type: string
+        description: Chart Name
+      - name: helm_targetNamespace
+        type: string
+        description: Helm Chart Target Namespace
+      - name: helm_release_name
+        type: string
+        description: Helm Release Name
+      - name: helm_values_config_map_name
+        type: string
+        description: Config Map name for Helm Chart values
+        default: config-helm-chart-values
+      - name: helm_values_config_map_key
+        type: string
+        description: Config Map Key for Helm Chart values File.
+  steps:
+    - name: helm-repo-add
+      image: alpine/helm:3.0.2
+      command:
+        - helm
+      args: ["repo","add","deployment","$(inputs.params.helm_repo)"]
+    - name: helm-repo-update
+      image: alpine/helm:3.0.2
+      command:
+        - helm
+      args: ["repo","update"]
+    # https://github.com/hashicorp/consul-template#quick-example
+    - image: hashicorp/consul-template
+      name: render-values
+      args: ["-template","/etc/templates/values.yml.ctmpl:/var/run/helm-values/values.yml","--once"]
+      volumeMounts:
+        - mountPath: /var/run/helm-values
+          name: helm-values-storage
+        - mountPath: /etc/templates
+          name: helm-values-template-volume
+    - name: helm-upgrade
+      image: alpine/helm:3.0.2
+      command:
+        - helm
+      args: [
+        "upgrade",
+        "-i",
+        "$(inputs.params.helm_release_name)",
+        "deployment/$(inputs.params.helm_chart)",
+        "-f",
+        "/var/run/helm-values/values.yml",
+        "-n",
+        "$(inputs.params.helm_targetNamespace)",
+        "--wait"
+      ]
+      volumeMounts:
+        - mountPath: /var/run/helm-values
+          name: helm-values-storage
+  volumes:
+    - name: helm-values-storage
+      emptyDir: {}
+    - name: helm-values-template-volume
+      configMap:
+        name: $(inputs.params.helm_values_config_map_name)
+        items:
+        - key: "values.yml"
+          path: values.yml.ctmpl
+---
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: helm-install
+  namespace: tekton-pipelines
+spec:
+  params:
+    - name: helm_repo
+      type: string
+      description: Helm Repo URL
+      default: https://kubernetes-charts.storage.googleapis.com
+    - name: helm_chart
+      type: string
+      description: Chart Name
+    - name: helm_targetNamespace
+      type: string
+      description: Helm Chart Target Namespace
+    - name: helm_release_name
+      type: string
+      description: minecraft
+    - name: helm_values_config_map_name
+      type: string
+      description: config-helm-chart-values
+      default: config-helm-chart-values
+    - name: helm_values_config_map_key
+      type: string
+      description:
+  tasks:
+    - name: install-helm-chart
+      taskRef:
+        name: helm-install
+      params:
+        - name: helm_repo
+          value: "$(params.helm_repo)"
+        - name: helm_chart
+          value: "$(params.helm_chart)"
+        - name: helm_targetNamespace
+          value: "$(params.helm_targetNamespace)"
+        - name: helm_release_name
+          value: "$(params.helm_release_name)"
+        - name: helm_values_config_map_name
+          value: "$(params.helm_values_config_map_name)"
+        - name: helm_values_config_map_key
+          value: "$(params.helm_values_config_map_key)"
+---

@@ -37,7 +37,6 @@ For the local development use the local [Vagrant](https://vagrantup.com) Infrast
   vagrant up
 ```
 
-
 ### Online Development
 
 For the [hetzner.de/cloud](https://hetzner.de/cloud) Deployment take a look to the Terraform Infrastructure Part.

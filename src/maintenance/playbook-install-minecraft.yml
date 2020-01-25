@@ -1,7 +1,15 @@
 ---
 - hosts: k3sMinecraft
   become: true
+  environment:
+    K8S_AUTH_KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   tasks:
+
+    - name: Start MC Tekton PipelineRun
+      k8s:
+        definition:  "{{ lookup('template', 'tekton-mc/50-run-minecraft.yml.j2') }}"
+        state: present
+
     - firewalld:
         port: "{{ item }}"
         state: enabled

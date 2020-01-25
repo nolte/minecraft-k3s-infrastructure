@@ -41,4 +41,39 @@ For the local development use the local [Vagrant](https://vagrantup.com) Infrast
 
 For the [hetzner.de/cloud](https://hetzner.de/cloud) Deployment take a look to the Terraform Infrastructure Part.
 
+### Provide the Infrastructrue
+
+```bash
+
+cd ./src/infrastructure/computing
+
+ export HCLOUD_TOKEN_STORAGE_PROJECT=$(pass internet/hetzner.com/projects/personal_storage/token) && \
+   export HCLOUD_TOKEN=$(pass internet/hetzner.com/projects/minecraft/terraform-token) && \
+   export AWS_ACCESS_KEY_ID=$(pass internet/project/mystoragebox/minio_access_key) && \
+   export AWS_SECRET_ACCESS_KEY=$(pass internet/project/mystoragebox/minio_secret_key) && \
+   export AWS_S3_ENDPOINT=https://$(curl -s -H "Authorization: Bearer $HCLOUD_TOKEN_STORAGE_PROJECT" 'https://api.hetzner.cloud/v1/servers?name=storagenode' | jq -r '.servers[0].public_net.ipv4.dns_ptr')
+
+```
+
+### Rollout the Service
+
+**Full Rollout**
+```bash
+# use your own Ansible Inventory
+export ANSIBLE_INVENTORY=$(pwd)/minecraft-k3s
+
+cd ./src/maintenance
+
+# check connection
+ansible all -m ping
+
+# install required galaxy dependencies from src/maintenance/roles/ folder
+ansible-galaxy install -r ./roles/requirements.yml
+
+# call the Master playbook for full configuration
+ansible-playbook master_playbook-full-install.yml
+
+```
+
+
 *WIP*

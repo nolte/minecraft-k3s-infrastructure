@@ -11,13 +11,13 @@ data:
       serviceType: NodePort
       version: "1.15.1"
       type: SPIGOT
-      ops: {{ minecraft_whitelist }}
+      ops: {{ minecraft_ops }}
       whitelist: {{ minecraft_whitelist }}
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:
-  name: minecraft-install
+  name: minecraft-install-3
   namespace: tekton-pipelines
 spec:
   serviceAccount: tektoncd-robot

@@ -1,0 +1,26 @@
+---
+- hosts: k3sMinecraft
+  become: true
+  tasks:
+    - firewalld:
+        port: "{{ item }}"
+        state: enabled
+        zone: public
+        permanent: yes
+      notify: reloaded firewalld
+      with_items:
+        - "6443/tcp"
+        - "443/tcp"
+        - "30551/tcp" #mc port
+
+  handlers:
+    - name: restart firewalld
+      become: true
+      service:
+        name: firewalld
+        state: restarted
+    - name: reloaded firewalld
+      become: true
+      service:
+        name: firewalld
+        state: reloaded

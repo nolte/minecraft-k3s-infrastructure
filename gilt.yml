@@ -1,0 +1,10 @@
+---
+- git: https://github.com/nolte/ansible_playbook-baseline-online-server.git
+  version: feature/centos8
+  dst: bin/ansible_playbook-baseline-online-server/
+- git: https://github.com/nolte/ansible_playbook-baseline-k3s.git
+  version: master
+  dst: bin/ansible_playbook-baseline-k3s/
+- git: https://github.com/nolte/ansible_playbook-common-cli-tools.git
+  version: master
+  dst: bin/ansible_playbook-common-cli-tools/

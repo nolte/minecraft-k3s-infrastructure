@@ -1,0 +1,9 @@
+---
+# Handle the ECS Instances
+- import_playbook: ../../bin/ansible_playbook-baseline-online-server/master-configure-system.yml
+
+- import_playbook: ../../bin/ansible_playbook-baseline-k3s/playbook-install-k3s.yaml
+
+- import_playbook: ../../bin/ansible_playbook-common-cli-tools/ansible_playbook-install-common-cli-tools.yml
+
+- import_playbook: playbook-install-minecraft.yml
